@@ -213,7 +213,7 @@ except Exception as e:
 # =====================================================
 st.sidebar.markdown("<h1 style='font-size: 26px; margin-bottom: 5px;'>🌍 AQ-CARE</h1>", unsafe_allow_html=True)
 
-# Language Selector component
+# Language Selector switcher
 lang_choice = st.sidebar.segmented_control(
     "Language / Bahasa",
     options=["ID", "EN"],
@@ -305,7 +305,7 @@ elif menu == txt["nav_pred"]:
     """, unsafe_allow_html=True)
 
     st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-    lokasi = st.text_input(txt["input_loc"], "Jakarta Pusat, ID")
+    lokasi = st.text_input(txt["input_loc"], "Palu, Sulawesi Tengah")
     st.markdown("<hr style='border: 0.5px solid #e2e8f0; margin: 20px 0;'>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
@@ -362,7 +362,7 @@ elif menu == txt["nav_pred"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================
-# ABOUT & EDUCATION PAGE
+# ABOUT & EDUCATION PAGE (FIXED & INTERACTIVE)
 # =====================================================
 elif menu == txt["nav_info"]:
     st.markdown(f"""
@@ -386,7 +386,40 @@ elif menu == txt["nav_info"]:
     </div>
     """, unsafe_allow_html=True)
 
-    # Menambahkan Widget Edukasi Tambahan Biar Rame & Informatif
+    # RAMAI 1: Penjelasan Teori Komputasi LaTeX
+    st.markdown("<div class='content-card'>", unsafe_allow_html=True)
+    st.markdown("### 📐 Dasar Matematika Klasifikasi Model")
+    st.markdown("Model klasifikasi ini didasarkan pada **Teorema Bayes** dengan asumsi independensi fitur dan kontinuitas Gaussian:")
+    
+    st.latex(r"P(y \mid X) = \frac{P(X \mid y) P(y)}{P(X)}")
+    st.markdown("Di mana nilai *likelihood* dari variabel kontinu polutan dikalkulasi menggunakan fungsi densitas peluang **Distribusi Normal (Gaussian)**:")
+    st.latex(r"P(x_i \mid y) = \frac{1}{\sqrt{2\pi\sigma_y^2}} \exp\left(-\frac{(x_i - \mu_y)^2}{2\sigma_y^2}\right)")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # RAMAI 2: Live Simulator Grafik Kurva Normal Interaktif
+    st.markdown("<div class='content-card'>", unsafe_allow_html=True)
+    st.markdown("### 📈 Simulator Interaktif Distribusi Gaussian")
+    st.write("Geser parameter rata-rata ($\mu$) dan standar deviasi ($\sigma$) untuk melihat bagaimana model Naive Bayes merepresentasikan sebaran polutan Anda secara teoretis!")
+    
+    sim_col1, sim_col2 = st.columns(2)
+    with sim_col1:
+        mu_sim = st.slider("Nilai Rata-rata / Mean ($\mu$)", min_value=0.0, max_value=150.0, value=50.0, step=1.0)
+    with sim_col2:
+        sigma_sim = st.slider("Standar Deviasi / Std Dev ($\sigma$)", min_value=1.0, max_value=50.0, value=15.0, step=1.0)
+    
+    # Generasi kurva normal
+    x_sim = np.linspace(mu_sim - 4*sigma_sim, mu_sim + 4*sigma_sim, 200)
+    y_sim = (1 / (sigma_sim * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_sim - mu_sim) / sigma_sim) ** 2)
+    
+    sim_df = pd.DataFrame({"Konsentrasi Polutan": x_sim, "Probability Density": y_sim})
+    fig_sim = px.line(sim_df, x="Konsentrasi Polutan", y="Probability Density", 
+                      title="<b>Kurva Kerapatan Probabilitas Polutan</b>",
+                      color_discrete_sequence=['#2563eb'])
+    fig_sim.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0f172a')
+    st.plotly_chart(fig_sim, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # RAMAI 3: Panduan Informasi Kesehatan WHO
     with st.expander(txt["edu_title"]):
         st.markdown(f"<p style='color:#64748b;'>{txt['edu_desc']}</p>", unsafe_allow_html=True)
         edu_data = {
