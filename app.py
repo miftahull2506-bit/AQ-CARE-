@@ -1,29 +1,190 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import plotly.express as px
+
 # =====================================================
-# MENU NAVIGASI
+# PAGE CONFIG
 # =====================================================
-selected = option_menu(
-    menu_title=None,
-    options=["Home", "Prediksi", "Dashboard", "About"],
-    icons=["house", "activity", "bar-chart", "info-circle"],
-    orientation="horizontal",
+st.set_page_config(
+    page_title="AQ-CARE",
+    page_icon="🌍",
+    layout="wide"
 )
 
 # =====================================================
-# HOME PAGE
+# CUSTOM CSS
 # =====================================================
-if selected == "Home":
+st.markdown("""
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* BACKGROUND */
+.stApp {
+    background: linear-gradient(135deg, #0ea5e9, #2563eb, #1e3a8a);
+    color: white;
+}
+
+/* CARD */
+.card {
+    background: rgba(255,255,255,0.12);
+    padding: 30px;
+    border-radius: 25px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+
+/* TITLE */
+h1, h2, h3, h4 {
+    color: white !important;
+}
+
+/* BUTTON */
+.stButton>button {
+    background: linear-gradient(90deg,#06b6d4,#3b82f6);
+    color: white;
+    border-radius: 15px;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    height: 50px;
+    width: 100%;
+}
+
+/* INPUT */
+.stTextInput>div>div>input,
+.stNumberInput input {
+    border-radius: 12px;
+}
+
+/* METRIC */
+[data-testid="metric-container"] {
+    background: rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 15px;
+}
+
+/* SIDEBAR */
+section[data-testid="stSidebar"] {
+    background: rgba(0,0,0,0.15);
+}
+
+/* FOOTER */
+.footer {
+    text-align:center;
+    color:white;
+    padding:20px;
+    font-size:14px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# LOAD DATA
+# =====================================================
+data = pd.read_csv(
+    "Filedata Data Indeks Standar Pencemar Udara ISPU di Provinsi DKI Jakarta 2023.csv"
+)
+
+# =====================================================
+# DATA CLEANING
+# =====================================================
+data.replace("–", np.nan, inplace=True)
+data.dropna(inplace=True)
+
+data.columns = data.columns.str.lower()
+data.columns = data.columns.str.strip()
+
+kolom_numerik = [
+    "pm_sepuluh",
+    "pm_duakomalima",
+    "sulfur_dioksida",
+    "karbon_monoksida",
+    "ozon",
+    "nitrogen_dioksida"
+]
+
+for col in kolom_numerik:
+    data[col] = pd.to_numeric(data[col], errors='coerce')
+
+data.dropna(inplace=True)
+
+data = data[data["kategori"] != "TIDAK ADA DATA"]
+
+data["kategori"] = data["kategori"].replace({
+    "SANGAT TIDAK SEHAT": "TIDAK SEHAT"
+})
+
+# =====================================================
+# FITUR & TARGET
+# =====================================================
+X = data[kolom_numerik]
+y = data["kategori"]
+
+# =====================================================
+# SPLIT DATA
+# =====================================================
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=123,
+    stratify=y
+)
+
+# =====================================================
+# MODEL
+# =====================================================
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+prediksi = model.predict(X_test)
+akurasi = accuracy_score(y_test, prediksi)
+
+# =====================================================
+# SIDEBAR MENU
+# =====================================================
+st.sidebar.title("🌍 AQ-CARE")
+
+menu = st.sidebar.radio(
+    "Navigasi",
+    ["🏠 Home", "📊 Dashboard", "🔍 Prediksi", "ℹ️ About"]
+)
+
+# =====================================================
+# HOME
+# =====================================================
+if menu == "🏠 Home":
 
     st.markdown("""
-    <div class="hero">
-        <div class="hero-title">🌍 AQ-CARE</div>
-        <div class="hero-sub">
-        Smart Air Quality Prediction System <br>
-        Using Gaussian Naive Bayes Machine Learning
-        </div>
+    <div class="card">
+        <h1>🌍 AQ-CARE</h1>
+        <h3>Smart Air Quality Prediction System</h3>
+
+        <br>
+
+        <p>
+        AQ-CARE merupakan website berbasis Machine Learning
+        yang digunakan untuk memprediksi kualitas udara menggunakan
+        metode Gaussian Naive Bayes.
+        </p>
+
+        <p>
+        Sistem ini membantu masyarakat mengetahui kondisi udara
+        berdasarkan konsentrasi polutan secara cepat dan interaktif.
+        </p>
+
     </div>
     """, unsafe_allow_html=True)
-
-    st.write("")
 
     col1, col2, col3 = st.columns(3)
 
@@ -33,44 +194,64 @@ if selected == "Home":
 
     st.write("")
 
-    st.markdown("""
-    <div class="card">
-        <h2>✨ Tentang AQ-CARE</h2>
-
-        <p>
-        AQ-CARE adalah website prediksi kualitas udara berbasis 
-        Machine Learning menggunakan metode Gaussian Naive Bayes.
-        </p>
-
-        <p>
-        Sistem ini dapat membantu pengguna mengetahui kondisi kualitas udara 
-        berdasarkan konsentrasi polutan secara cepat dan interaktif.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-
     st.image(
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+        "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
         use_container_width=True
     )
 
 # =====================================================
-# HALAMAN PREDIKSI
+# DASHBOARD
 # =====================================================
-elif selected == "Prediksi":
+elif menu == "📊 Dashboard":
+
+    st.markdown("""
+    <div class="card">
+        <h2>📊 Dashboard Kualitas Udara</h2>
+
+        <p>
+        Dashboard ini menampilkan visualisasi data polutan udara
+        berdasarkan dataset ISPU DKI Jakarta 2023.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Distribusi kategori
+    kategori_count = data["kategori"].value_counts().reset_index()
+    kategori_count.columns = ["Kategori", "Jumlah"]
+
+    fig1 = px.pie(
+        kategori_count,
+        names="Kategori",
+        values="Jumlah",
+        title="Distribusi Kategori Udara"
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+    # Grafik PM10
+    fig2 = px.histogram(
+        data,
+        x="pm_sepuluh",
+        nbins=30,
+        title="Distribusi PM10"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+# =====================================================
+# PREDIKSI
+# =====================================================
+elif menu == "🔍 Prediksi":
 
     st.markdown("""
     <div class="card">
         <h2>🌫️ Prediksi Kualitas Udara</h2>
+
         <p>
         Masukkan nilai polutan udara untuk mengetahui kategori kualitas udara.
         </p>
     </div>
     """, unsafe_allow_html=True)
-
-    st.write("")
 
     col1, col2 = st.columns(2)
 
@@ -133,139 +314,21 @@ elif selected == "Prediksi":
             y="Probabilitas",
             color="Kategori",
             text_auto='.2f',
-            title="📊 Probabilitas Prediksi"
+            title="📈 Probabilitas Prediksi"
         )
 
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(255,255,255,0.08)',
+            plot_bgcolor='rgba(255,255,255,0.1)',
             font_color='white'
         )
 
         st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("""
-        <div class="rekom">
-        <h3>💡 Rekomendasi</h3>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if hasil == "BAIK":
-            st.info("""
-            ✅ Udara aman untuk aktivitas luar ruangan  
-            ✅ Cocok untuk olahraga  
-            ✅ Tidak perlu masker
-            """)
-
-        elif hasil == "SEDANG":
-            st.warning("""
-            ⚠️ Kelompok sensitif disarankan mengurangi aktivitas luar ruangan  
-            ⚠️ Gunakan masker bila diperlukan
-            """)
-
-        else:
-            st.error("""
-            ❌ Hindari aktivitas luar ruangan  
-            ❌ Gunakan masker  
-            ❌ Tutup ventilasi rumah
-            """)
-
 # =====================================================
-# DASHBOARD PAGE
+# ABOUT
 # =====================================================
-elif selected == "Dashboard":
-
-    st.markdown("""
-    <div class="card">
-        <h1>📊 Air Quality Dashboard</h1>
-        <p>
-        Dashboard interaktif untuk melihat distribusi kualitas udara,
-        pola polutan, dan statistik data ISPU Jakarta 2023.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-
-    # METRIC
-    total_data = len(data)
-
-    rata_pm10 = round(data["pm_sepuluh"].mean(), 2)
-    rata_pm25 = round(data["pm_duakomalima"].mean(), 2)
-    rata_o3 = round(data["ozon"].mean(), 2)
-    rata_no2 = round(data["nitrogen_dioksida"].mean(), 2)
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    c1.metric("📊 Total Data", total_data)
-    c2.metric("🌫️ Avg PM10", rata_pm10)
-    c3.metric("💨 Avg PM2.5", rata_pm25)
-    c4.metric("☁️ Avg O₃", rata_o3)
-
-    st.write("")
-
-    # PIE CHART
-    kategori_count = data["kategori"].value_counts().reset_index()
-    kategori_count.columns = ["Kategori", "Jumlah"]
-
-    fig1 = px.pie(
-        kategori_count,
-        names="Kategori",
-        values="Jumlah",
-        hole=0.45,
-        color="Kategori"
-    )
-
-    fig1.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white'
-    )
-
-    st.plotly_chart(fig1, use_container_width=True)
-
-    # HISTOGRAM
-    fig2 = px.histogram(
-        data,
-        x="pm_sepuluh",
-        color="kategori",
-        title="Distribusi PM10"
-    )
-
-    fig2.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(255,255,255,0.08)',
-        font_color='white'
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
-
-    # SCATTER
-    fig3 = px.scatter(
-        data,
-        x="pm_sepuluh",
-        y="pm_duakomalima",
-        color="kategori",
-        size="pm_duakomalima",
-        title="PM10 vs PM2.5"
-    )
-
-    fig3.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(255,255,255,0.08)',
-        font_color='white'
-    )
-
-    st.plotly_chart(fig3, use_container_width=True)
-
-    # DATASET
-    st.markdown("## 📋 Preview Dataset")
-
-    st.dataframe(data.head(20), use_container_width=True)
-
-# =====================================================
-# ABOUT PAGE
-# =====================================================
-elif selected == "About":
+elif menu == "ℹ️ About":
 
     st.markdown("""
     <div class="card">
@@ -273,52 +336,42 @@ elif selected == "About":
     <h1>ℹ️ About AQ-CARE</h1>
 
     <p>
-    AQ-CARE merupakan sistem prediksi kualitas udara berbasis 
-    Machine Learning yang dikembangkan menggunakan metode 
-    <b>Gaussian Naive Bayes</b>.
+    AQ-CARE adalah sistem prediksi kualitas udara berbasis Machine Learning
+    menggunakan metode Gaussian Naive Bayes.
     </p>
 
     <p>
-    Sistem ini bertujuan membantu masyarakat dalam memantau 
-    kondisi kualitas udara berdasarkan konsentrasi polutan.
+    Website ini dikembangkan untuk membantu masyarakat dalam
+    memahami kondisi kualitas udara secara interaktif dan modern.
     </p>
 
     <br>
 
-    <h2>📌 Variabel</h2>
+    <h3>📌 Variabel</h3>
 
     <ul>
         <li>PM10</li>
         <li>PM2.5</li>
-        <li>SO₂</li>
+        <li>SO2</li>
         <li>CO</li>
-        <li>O₃</li>
-        <li>NO₂</li>
+        <li>O3</li>
+        <li>NO2</li>
     </ul>
 
     <br>
 
-    <h2>🧠 Cara Kerja Gaussian Naive Bayes</h2>
+    <h3>🧠 Metode Gaussian Naive Bayes</h3>
 
     <p>
-    Gaussian Naive Bayes merupakan algoritma klasifikasi berbasis probabilitas 
-    menggunakan Teorema Bayes dengan asumsi distribusi normal.
+    Gaussian Naive Bayes merupakan algoritma klasifikasi
+    berbasis probabilitas yang menggunakan Teorema Bayes
+    dengan asumsi distribusi normal pada setiap fitur numerik.
     </p>
 
     <p>
-    Model akan menghitung probabilitas setiap kategori kualitas udara 
-    berdasarkan nilai polutan yang dimasukkan pengguna.
+    Model ini cocok digunakan untuk klasifikasi data kualitas udara
+    karena memiliki proses komputasi yang cepat dan akurat.
     </p>
-
-    <br>
-
-    <h2>🎯 Tujuan Sistem</h2>
-
-    <ul>
-        <li>Memprediksi kualitas udara</li>
-        <li>Menyediakan visualisasi data polutan</li>
-        <li>Membantu masyarakat memahami kondisi udara</li>
-    </ul>
 
     </div>
     """, unsafe_allow_html=True)
@@ -329,6 +382,6 @@ elif selected == "About":
 st.markdown("""
 <div class="footer">
 AQ-CARE © 2026 <br>
-Gaussian Naive Bayes Air Quality Prediction System
+Smart Air Quality Prediction System
 </div>
 """, unsafe_allow_html=True)
