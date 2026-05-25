@@ -10,11 +10,15 @@ import plotly.express as px
 # PAGE CONFIG
 # =====================================================
 st.set_page_config(
-    page_title="AQ-CARE | Multi-Language AI Dashboard",
+    page_title="AQ-CARE | Smart Air Quality Dashboard",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize Session State for Landing Screen Navigation
+if "start_prediction" not in st.session_state:
+    st.session_state.start_prediction = False
 
 # =====================================================
 # MULTI-LANGUAGE DICTIONARY (ID & EN)
@@ -24,74 +28,74 @@ LANG = {
         "nav_home": "🏠 Beranda",
         "nav_dash": "📊 Dashboard Analitik",
         "nav_pred": "🔍 Prediksi Kualitas",
-        "nav_info": "ℹ️ Informasi Sistem",
+        "nav_info": "ℹ️ Panduan & Informasi",
         "hero_title": "🌍 AQ-CARE",
-        "hero_subtitle": "Sistem Prediksi Kualitas Udara Pintar",
-        "hero_desc": "AQ-CARE memanfaatkan kecerdasan buatan (Machine Learning) dengan algoritma Gaussian Naive Bayes untuk mengklasifikasikan dan memprediksi tingkat kelayakan udara secara presisi, cerdas, dan real-time berdasarkan parameter sensor lingkungan.",
-        "metric_data": "📊 Total Sampel Data",
-        "metric_acc": "🎯 Akurasi Pengujian",
-        "metric_method": "🧠 Intelijen Model",
-        "dash_title": "📊 Dashboard Analitik Kualitas Udara",
-        "dash_subtitle": "Visualisasi ringkas dari distribusi data ISPU untuk memantau tren pencemaran lingkungan.",
+        "hero_subtitle": "Sistem Deteksi Kualitas Udara Pintar",
+        "hero_desc": "AQ-CARE adalah aplikasi berbasis kecerdasan buatan (AI) yang dirancang khusus untuk memantau, menganalisis, dan memprediksi apakah udara di sekitar kita sehat atau tidak secara instan dan mudah dipahami.",
+        "metric_data": "📊 Total Data Diperiksa",
+        "metric_acc": "🎯 Akurasi Deteksi AI",
+        "metric_method": "🧠 Teknologi Sistem",
+        "dash_title": "📊 Grafik Pantauan Udara",
+        "dash_subtitle": "Melihat rangkuman kondisi kebersihan udara berdasarkan data historis secara visual.",
         "chart_pie": "<b>Proporsi Kategori Udara</b>",
-        "chart_hist": "<b>Distribusi Konsentrasi PM10</b>",
-        "pred_title": "🔍 Kalkulator Prediksi Kualitas Udara",
-        "pred_subtitle": "Masukkan parameter konsentrasi polutan di bawah ini untuk mendapatkan hasil analisis instan dari kecerdasan buatan.",
-        "input_loc": "📍 Nama Lokasi Pengujian",
-        "btn_predict": "🚀 Jalankan Prediksi Kecerdasan Buatan",
+        "chart_hist": "<b>Tingkat Kepadatan Debu Udara (PM10)</b>",
+        "pred_title": "🔍 Kalkulator Prediksi Udara",
+        "pred_subtitle": "Cek kelayakan udara di lokasi Anda menggunakan kecerdasan buatan.",
+        "input_loc": "📍 Tulis Nama Lokasi Anda",
+        "btn_predict": "🚀 Mulai Hitung Kualitas Udara",
         "res_title": "### 📍 Hasil Analisis untuk",
-        "res_baik": "🌱 **KUALITAS UDARA AMAT BAIK** — Udara sangat segar dan aman untuk beraktivitas di luar ruangan.",
-        "res_sedang": "⚠️ **KUALITAS UDARA SEDANG** — Kualitas udara berstatus wajar namun sensitif bagi sebagian kelompok rentan.",
-        "res_buruk": "🚨 **KUALITAS UDARA TIDAK SEHAT** — Sangat disarankan menggunakan masker dan mengurangi mobilitas luar.",
-        "chart_conf": "<b>Tingkat Keyakinan Prediksi (Confidence Score)</b>",
-        "info_title": "ℹ️ Tentang AQ-CARE",
-        "info_desc": "Sistem ini dibangun dengan dedikasi tinggi untuk memberikan informasi prediktif yang akurat mengenai indeks standar pencemar udara (ISPU). Menggunakan riset komparatif berbasis data historis DKI Jakarta.",
-        "var_title": "📌 Variabel Polutan Utama",
-        "var_subtitle": "Sistem mendeteksi 6 unsur senyawa kritikal berbahaya:",
-        "why_title": "🧠 Mengapa Menggunakan Gaussian Naive Bayes?",
-        "why_desc": "Algoritma ini mengasumsikan bahwa data kontinu pada masing-masing variabel mengikuti Distribusi Normal (Gaussian). Metode ini dipilih karena sangat efisien dalam memproses data dengan skala komputasi cepat, membutuhkan sedikit data latihan, dan menghasilkan akurasi klasifikasi probabilitas yang optimal untuk dataset sensor lingkungan.",
-        "edu_title": "💡 Panduan Ambang Batas Aman Polutan (WHO Standard)",
-        "edu_desc": "Klik untuk melihat tabel ambang batas aman indikator polutan udara.",
-        "footer_text": "Built with modern Minimalist Engineering Design."
+        "res_baik": "🌱 **KUALITAS UDARA AMAT BAIK** — Udara sangat segar dan bersih! Sangat aman untuk jalan-jalan atau olahraga di luar rumah.",
+        "res_sedang": "⚠️ **KUALITAS UDARA SEDANG** — Udara cukup aman, tetapi bagi yang sensitif (seperti penderita asma/lansia) sebaiknya mulai berhati-hati.",
+        "res_buruk": "🚨 **KUALITAS UDARA TIDAK SEHAT** — Udara kotor! Sangat disarankan memakai masker dan kurangi aktivitas di luar ruangan.",
+        "chart_conf": "<b>Persentase Keyakinan Kecerdasan Buatan (AI)</b>",
+        "info_title": "ℹ️ Panduan Mudah AQ-CARE",
+        "info_desc": "Aplikasi ini diciptakan untuk membantu masyarakat awam mengenali kondisi udara di lingkungan sekitar demi menjaga kesehatan keluarga.",
+        "var_title": "📌 Mengenal 6 Musuh Utama di Udara",
+        "var_subtitle": "Sistem kami mendeteksi 6 jenis kotoran dan gas berbahaya yang sering melayang di sekitar kita:",
+        "why_title": "🧠 Bagaimana Cara Kerja AI di Aplikasi Ini?",
+        "why_desc": "Aplikasi ini menggunakan metode statistik pintar yang mempelajari ribuan data kualitas udara di masa lalu. AI akan melihat pola dari angka-angka polutan yang Anda masukkan, membandingkannya dengan pola data yang sudah dipelajari, lalu memberikan kesimpulan instan apakah udara tersebut masuk kategori Baik, Sedang, atau Tidak Sehat.",
+        "edu_title": "💡 Tips & Panduan Kesehatan Udara (Standar WHO)",
+        "edu_desc": "Klik di sini untuk melihat info batas aman dan dampak kesehatan bagi tubuh kita.",
+        "footer_text": "Didesain dengan kemudahan akses untuk semua orang."
     },
     "EN": {
         "nav_home": "🏠 Home",
         "nav_dash": "📊 Analytical Dashboard",
         "nav_pred": "🔍 Quality Prediction",
-        "nav_info": "ℹ️ System Information",
+        "nav_info": "ℹ️ Guides & Information",
         "hero_title": "🌍 AQ-CARE",
-        "hero_subtitle": "Smart Air Quality Prediction System",
-        "hero_desc": "AQ-CARE utilizes Artificial Intelligence (Machine Learning) with the Gaussian Naive Bayes algorithm to classify and predict air quality levels precisely, intelligently, and in real-time based on environmental sensor parameters.",
-        "metric_data": "📊 Total Data Samples",
-        "metric_acc": "🎯 Testing Accuracy",
-        "metric_method": "🧠 Model Intelligence",
-        "dash_title": "📊 Air Quality Analytical Dashboard",
-        "dash_subtitle": "Concise visualization of ISPU data distribution to monitor environmental pollution trends.",
+        "hero_subtitle": "Smart Air Quality Detection System",
+        "hero_desc": "AQ-CARE is an artificial intelligence (AI) application specifically designed to monitor, analyze, and predict whether the air around us is healthy or not instantly and easily.",
+        "metric_data": "📊 Total Data Checked",
+        "metric_acc": "🎯 AI Detection Accuracy",
+        "metric_method": "🧠 System Technology",
+        "dash_title": "📊 Air Monitoring Charts",
+        "dash_subtitle": "Visually view the summary of air cleanliness conditions based on historical data.",
         "chart_pie": "<b>Air Category Proportion</b>",
-        "chart_hist": "<b>PM10 Concentration Distribution</b>",
-        "pred_title": "🔍 Air Quality Prediction Calculator",
-        "pred_subtitle": "Enter the pollutant concentration parameters below to get instant analysis results from our AI model.",
-        "input_loc": "📍 Test Location Name",
-        "btn_predict": "🚀 Run Artificial Intelligence Prediction",
+        "chart_hist": "<b>Air Dust Density Level (PM10)</b>",
+        "pred_title": "🔍 Air Quality Calculator",
+        "pred_subtitle": "Check the air quality at your location using artificial intelligence.",
+        "input_loc": "📍 Enter Your Location Name",
+        "btn_predict": "🚀 Start Calculating Air Quality",
         "res_title": "### 📍 Analysis Results for",
-        "res_baik": "🌱 **EXCELLENT AIR QUALITY** — The air is very fresh and safe for outdoor activities.",
-        "res_sedang": "⚠️ **MODERATE AIR QUALITY** — Air quality is fair but may be sensitive to some vulnerable groups.",
-        "res_buruk": "🚨 **UNHEALTHY AIR QUALITY** — It is highly recommended to wear masks and reduce outdoor mobility.",
-        "chart_conf": "<b>Prediction Confidence Score</b>",
-        "info_title": "ℹ️ About AQ-CARE",
-        "info_desc": "This system was built with high dedication to provide accurate predictive information regarding the air pollutant standard index (ISPU). Utilizing comparative research based on historical data from DKI Jakarta.",
-        "var_title": "📌 Key Pollutant Variables",
-        "var_subtitle": "The system detects 6 critical hazardous compound elements:",
-        "why_title": "🧠 Why Use Gaussian Naive Bayes?",
-        "why_desc": "This algorithm assumes that the continuous data for each variable follows a Normal (Gaussian) Distribution. This method was chosen because it is highly efficient in processing data with fast computational scales, requires minimal training data, and yields optimal probability classification accuracy for environmental sensor datasets.",
-        "edu_title": "💡 Pollutant Safety Threshold Guide (WHO Standard)",
-        "edu_desc": "Click to view the safety threshold table for air pollutant indicators.",
-        "footer_text": "Built with modern Minimalist Engineering Design."
+        "res_baik": "🌱 **EXCELLENT AIR QUALITY** — The air is very fresh and clean! Highly safe for walking or outdoor sports.",
+        "res_sedang": "⚠️ **MODERATE AIR QUALITY** — The air is fair, but sensitive groups (like asthma patients/elderly) should start being cautious.",
+        "res_buruk": "🚨 **UNHEALTHY AIR QUALITY** — Dirty air! It is highly recommended to wear a mask and reduce outdoor activities.",
+        "chart_conf": "<b>Artificial Intelligence (AI) Confidence Percentage</b>",
+        "info_title": "ℹ️ AQ-CARE Easy Guide",
+        "info_desc": "This application was created to help everyone recognize air conditions in the surrounding environment to protect family health.",
+        "var_title": "📌 Meet the 6 Main Enemies in the Air",
+        "var_subtitle": "Our system detects 6 types of hazardous dirt and gases that often float around us:",
+        "why_title": "🧠 How Does the AI Work in This App?",
+        "why_desc": "This app uses a smart statistical method that learns from thousands of historical air quality data points. The AI looks at patterns from the pollutant numbers you enter, compares them with past patterns, and gives an instant conclusion whether the air is Good, Moderate, or Unhealthy.",
+        "edu_title": "💡 Air Health Guidelines & Tips (WHO Standard)",
+        "edu_desc": "Click here to see safe limit info and health impacts on our bodies.",
+        "footer_text": "Designed with ease of access for everyone."
     }
 }
 
 # =====================================================
-# CUSTOM MODERN CSS (Google & Premium Tech Vibe)
+# CUSTOM MODERN CSS
 # =====================================================
 st.markdown("""
 <style>
@@ -159,12 +163,6 @@ section[data-testid="stSidebar"] {
     box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3) !important;
 }
 
-.stTextInput input, .stNumberInput input {
-    border-radius: 10px !important;
-    border: 1px solid #cbd5e1 !important;
-    background-color: #ffffff !important;
-}
-
 .footer {
     text-align: center;
     color: #94a3b8;
@@ -213,7 +211,6 @@ except Exception as e:
 # =====================================================
 st.sidebar.markdown("<h1 style='font-size: 26px; margin-bottom: 5px;'>🌍 AQ-CARE</h1>", unsafe_allow_html=True)
 
-# Language Selector switcher
 lang_choice = st.sidebar.segmented_control(
     "Language / Bahasa",
     options=["ID", "EN"],
@@ -221,9 +218,7 @@ lang_choice = st.sidebar.segmented_control(
     label_visibility="collapsed"
 )
 
-# Active language configuration shortcut
 txt = LANG[lang_choice]
-
 st.sidebar.markdown("<hr style='margin: 15px 0; border: 0.5px solid #e2e8f0;'>", unsafe_allow_html=True)
 
 menu = st.sidebar.radio(
@@ -231,6 +226,10 @@ menu = st.sidebar.radio(
     [txt["nav_home"], txt["nav_dash"], txt["nav_pred"], txt["nav_info"]],
     label_visibility="collapsed"
 )
+
+# Reset screen prediction if switching menu
+if menu != txt["nav_pred"]:
+    st.session_state.start_prediction = False
 
 # =====================================================
 # HOME PAGE
@@ -247,13 +246,10 @@ if menu == txt["nav_home"]:
     col1, col2, col3 = st.columns(3)
     col1.metric(txt["metric_data"], f"{len(data):,}")
     col2.metric(txt["metric_acc"], f"{akurasi*100:.2f}%")
-    col3.metric(txt["metric_method"], "Gaussian NB")
+    col3.metric(txt["metric_method"], "Smart AI System")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.image(
-        "https://images.unsplash.com/photo-1519608487953-e999c86e7455", 
-        use_container_width=True
-    )
+    st.image("https://images.unsplash.com/photo-1519608487953-e999c86e7455", use_container_width=True)
 
 # =====================================================
 # DASHBOARD PAGE
@@ -294,75 +290,111 @@ elif menu == txt["nav_dash"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================
-# PREDICTION PAGE
+# PREDICTION PAGE (WITH LANDING INITIAL VIEW)
 # =====================================================
 elif menu == txt["nav_pred"]:
-    st.markdown(f"""
-    <div class="content-card">
-        <h2>{txt["pred_title"]}</h2>
-        <p style='color: #64748b;'>{txt["pred_subtitle"]}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-    lokasi = st.text_input(txt["input_loc"], "Palu, Sulawesi Tengah")
-    st.markdown("<hr style='border: 0.5px solid #e2e8f0; margin: 20px 0;'>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        pm10 = st.number_input("🌫️ PM10 (µg/m³)", 0.0, 500.0, 50.0, step=1.0)
-        co = st.number_input("🚗 CO (µg/m³)", 0.0, 100.0, 10.0, step=0.5)
-    with col2:
-        pm25 = st.number_input("💨 PM2.5 (µg/m³)", 0.0, 500.0, 70.0, step=1.0)
-        o3 = st.number_input("☀️ O3 (µg/m³)", 0.0, 500.0, 20.0, step=1.0)
-    with col3:
-        so2 = st.number_input("🏭 SO2 (µg/m³)", 0.0, 500.0, 30.0, step=1.0)
-        no2 = st.number_input("🔥 NO2 (µg/m³)", 0.0, 500.0, 15.0, step=1.0)
+    # 1. TAMPILAN AWAL (WELCOME SCREEN)
+    if not st.session_state.start_prediction:
+        st.markdown(f"""
+        <div class="hero-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); text-align: center;">
+            <h1 style='font-size: 36px; font-weight: 700; margin-bottom: 10px;'>🔍 {txt["pred_title"]}</h1>
+            <p style='font-size: 18px; opacity: 0.9; max-width: 700px; margin: 0 auto 30px auto;'>
+                {txt["pred_subtitle"]} Aplikasi kami siap mengalkulasi kualitas polutan secara cepat dengan kecerdasan buatan.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Penjelasan Alur Singkat Orang Awam
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown("<div class='content-card' style='text-align:center; height:180px;'><h4>📍 Langkah 1</h4><p style='color:#64748b;'>Masukkan nama kota atau lokasi tempat tinggal Anda saat ini.</p></div>", unsafe_allow_html=True)
+        with col2:
+            st.markdown("<div class='content-card' style='text-align:center; height:180px;'><h4>🌫️ Langkah 2</h4><p style='color:#64748b;'>Isi nilai indikator polutan udara (bisa didapatkan dari data sensor lokal atau perkiraan).</p></div>", unsafe_allow_html=True)
+        with col3:
+            st.markdown("<div class='content-card' style='text-align:center; height:180px;'><h4>✨ Langkah 3</h4><p style='color:#64748b;'>Klik tombol proses dan kecerdasan buatan akan menilai kelayakannya secara instan!</p></div>", unsafe_allow_html=True)
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Tombol Gerbang Masuk Ke Kalkulator Input
+        if st.button("🚀 " + ("Mulai Analisis Sekarang" if lang_choice == "ID" else "Start Analysis Now")):
+            st.session_state.start_prediction = True
+            st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    prediksi_btn = st.button(txt["btn_predict"])
-    st.markdown("</div>", unsafe_allow_html=True)
+    # 2. TAMPILAN HALAMAN INPUT (SETELAH KLIK TOMBOL MULAI)
+    else:
+        st.markdown(f"""
+        <div class="content-card">
+            <h2>{txt["pred_title"]}</h2>
+            <p style='color: #64748b;'>{txt["pred_subtitle"]}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    if prediksi_btn:
-        data_input = pd.DataFrame({
-            "pm_sepuluh": [pm10],
-            "pm_duakomalima": [pm25],
-            "sulfur_dioksida": [so2],
-            "karbon_monoksida": [co],
-            "ozon": [o3],
-            "nitrogen_dioksida": [no2]
-        })
-
-        hasil = model.predict(data_input)[0]
-        probabilitas = model.predict_proba(data_input)[0]
-
-        st.markdown(f"{txt['res_title']} **{lokasi}**:")
-        if hasil == "BAIK":
-            st.success(txt["res_baik"])
-        elif hasil == "SEDANG":
-            st.warning(txt["res_sedang"])
-        else:
-            st.error(txt["res_buruk"])
-
-        # Chart Confidence Score
         st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-        prob_df = pd.DataFrame({
-            "Kategori": model.classes_,
-            "Probabilitas Keyakinan": probabilitas
-        })
+        lokasi = st.text_input(txt["input_loc"], "Palu, Sulawesi Tengah")
+        st.markdown("<hr style='border: 0.5px solid #e2e8f0; margin: 20px 0;'>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            pm10 = st.number_input("🌫️ Kepadatan Debu / PM10 (µg/m³)", 0.0, 500.0, 50.0, step=1.0)
+            co = st.number_input("🚗 Gas Kendaraan / CO (µg/m³)", 0.0, 100.0, 10.0, step=0.5)
+        with col2:
+            pm25 = st.number_input("💨 Partikel Halus / PM2.5 (µg/m³)", 0.0, 500.0, 70.0, step=1.0)
+            o3 = st.number_input("☀️ Gas Lapisan Ozon / O3 (µg/m³)", 0.0, 500.0, 20.0, step=1.0)
+        with col3:
+            so2 = st.number_input("🏭 Asap Pabrik / SO2 (µg/m³)", 0.0, 500.0, 30.0, step=1.0)
+            no2 = st.number_input("🔥 Gas Pembakaran / NO2 (µg/m³)", 0.0, 500.0, 15.0, step=1.0)
 
-        fig = px.bar(
-            prob_df, x="Kategori", y="Probabilitas Keyakinan",
-            color="Kategori", text_auto='.2f',
-            title=txt["chart_conf"],
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0f172a')
-        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        prediksi_btn = st.button(txt["btn_predict"])
+        
+        # Tombol Kembali ke Welcome Screen
+        if st.button("⬅️ " + ("Kembali ke Awal" if lang_choice == "ID" else "Back to Welcome Screen")):
+            st.session_state.start_prediction = False
+            st.rerun()
+            
         st.markdown("</div>", unsafe_allow_html=True)
 
+        if prediksi_btn:
+            data_input = pd.DataFrame({
+                "pm_sepuluh": [pm10],
+                "pm_duakomalima": [pm25],
+                "sulfur_dioksida": [so2],
+                "karbon_monoksida": [co],
+                "ozon": [o3],
+                "nitrogen_dioksida": [no2]
+            })
+
+            hasil = model.predict(data_input)[0]
+            probabilitas = model.predict_proba(data_input)[0]
+
+            st.markdown(f"{txt['res_title']} **{lokasi}**:")
+            if hasil == "BAIK":
+                st.success(txt["res_baik"])
+            elif hasil == "SEDANG":
+                st.warning(txt["res_sedang"])
+            else:
+                st.error(txt["res_buruk"])
+
+            # Chart persentase keyakinan model
+            st.markdown("<div class='content-card'>", unsafe_allow_html=True)
+            prob_df = pd.DataFrame({
+                "Kategori": model.classes_,
+                "Persentase Keyakinan System (%)": probabilitas * 100
+            })
+
+            fig = px.bar(
+                prob_df, x="Kategori", y="Persentase Keyakinan System (%)",
+                color="Kategori", text_auto='.1f',
+                title=txt["chart_conf"],
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0f172a')
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
 # =====================================================
-# ABOUT & EDUCATION PAGE (FIXED & INTERACTIVE)
+# ABOUT & EDUCATION PAGE (ANTI-RIBET RUMUS)
 # =====================================================
 elif menu == txt["nav_info"]:
     st.markdown(f"""
@@ -373,12 +405,12 @@ elif menu == txt["nav_info"]:
         <h3 style='margin-top: 30px;'>{txt["var_title"]}</h3>
         <p style='color: #475569;'>{txt["var_subtitle"]}</p>
         <div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;'>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>PM10 & PM2.5</b><br>Particulate Matter</div>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>SO2</b><br>Sulfur Dioxide</div>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>CO</b><br>Carbon Monoxide</div>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>O3</b><br>Ozone</div>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>NO2</b><br>Nitrogen Dioxide</div>
-            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>ISPU</b><br>Air Index Standard</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>PM10 & PM2.5</b><br>Debu & Partikel Kecil</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>SO2</b><br>Gas Asap Pabrik Industri</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>CO</b><br>Gas Racun Asap Kendaraan</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>O3</b><br>Gas Lapisan Ozon Permukaan</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>NO2</b><br>Gas Hasil Pembakaran Tinggi</div>
+            <div style='padding:15px; background:#f1f5f9; border-radius:10px; text-align:center;'><b>ISPU</b><br>Indeks Standar Kualitas Udara</div>
         </div>
 
         <h3>{txt["why_title"]}</h3>
@@ -386,52 +418,19 @@ elif menu == txt["nav_info"]:
     </div>
     """, unsafe_allow_html=True)
 
-    # RAMAI 1: Penjelasan Teori Komputasi LaTeX
-    st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-    st.markdown("### 📐 Dasar Matematika Klasifikasi Model")
-    st.markdown("Model klasifikasi ini didasarkan pada **Teorema Bayes** dengan asumsi independensi fitur dan kontinuitas Gaussian:")
-    
-    st.latex(r"P(y \mid X) = \frac{P(X \mid y) P(y)}{P(X)}")
-    st.markdown("Di mana nilai *likelihood* dari variabel kontinu polutan dikalkulasi menggunakan fungsi densitas peluang **Distribusi Normal (Gaussian)**:")
-    st.latex(r"P(x_i \mid y) = \frac{1}{\sqrt{2\pi\sigma_y^2}} \exp\left(-\frac{(x_i - \mu_y)^2}{2\sigma_y^2}\right)")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # RAMAI 2: Live Simulator Grafik Kurva Normal Interaktif
-    st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-    st.markdown("### 📈 Simulator Interaktif Distribusi Gaussian")
-    st.write("Geser parameter rata-rata ($\mu$) dan standar deviasi ($\sigma$) untuk melihat bagaimana model Naive Bayes merepresentasikan sebaran polutan Anda secara teoretis!")
-    
-    sim_col1, sim_col2 = st.columns(2)
-    with sim_col1:
-        mu_sim = st.slider("Nilai Rata-rata / Mean ($\mu$)", min_value=0.0, max_value=150.0, value=50.0, step=1.0)
-    with sim_col2:
-        sigma_sim = st.slider("Standar Deviasi / Std Dev ($\sigma$)", min_value=1.0, max_value=50.0, value=15.0, step=1.0)
-    
-    # Generasi kurva normal
-    x_sim = np.linspace(mu_sim - 4*sigma_sim, mu_sim + 4*sigma_sim, 200)
-    y_sim = (1 / (sigma_sim * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_sim - mu_sim) / sigma_sim) ** 2)
-    
-    sim_df = pd.DataFrame({"Konsentrasi Polutan": x_sim, "Probability Density": y_sim})
-    fig_sim = px.line(sim_df, x="Konsentrasi Polutan", y="Probability Density", 
-                      title="<b>Kurva Kerapatan Probabilitas Polutan</b>",
-                      color_discrete_sequence=['#2563eb'])
-    fig_sim.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0f172a')
-    st.plotly_chart(fig_sim, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # RAMAI 3: Panduan Informasi Kesehatan WHO
+    # Widget Edukasi Informasi Kesehatan Tambahan (Biar Lebih Ramai)
     with st.expander(txt["edu_title"]):
         st.markdown(f"<p style='color:#64748b;'>{txt['edu_desc']}</p>", unsafe_allow_html=True)
         edu_data = {
             "Indikator / Indicator": ["PM2.5", "PM10", "O3 (Ozon)", "CO", "SO2", "NO2"],
             "Ambang Batas Aman / Safe Limit (WHO)": ["15 µg/m³ (24h)", "45 µg/m³ (24h)", "100 µg/m³ (8h)", "4 mg/m³ (24h)", "40 µg/m³ (24h)", "25 µg/m³ (24h)"],
-            "Dampak Kesehatan / Health Impact": [
-                "Risiko pernapasan tinggi / Severe respiratory risks",
-                "Iritasi paru-paru / Lung irritation",
-                "Memicu asma / Triggers asthma",
-                "Sakit kepala, sesak / Headache, asphyxia",
-                "Hujan asam, iritasi / Acid rain, irritation",
-                "Infeksi pernapasan akut / Acute respiratory infection"
+            "Dampak Bagi Kesehatan / Health Impact": [
+                "Bisa masuk paru-paru dalam, batuk, sesak / Severe respiratory risks",
+                "Iritasi tenggorokan & saluran pernapasan / Lung irritation",
+                "Memicu kambuhnya penyakit asma / Triggers asthma",
+                "Membuat pusing, mual, lemas / Headache, nausea",
+                "Dapat memicu hujan asam dan batuk parah / Irritation",
+                "Risiko infeksi paru-paru pada anak-anak / Infection risks"
             ]
         }
         st.table(pd.DataFrame(edu_data))
