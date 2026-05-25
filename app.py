@@ -355,18 +355,14 @@ data, kolom_numerik = load_and_clean_data()
 X = data[kolom_numerik]
 y = data["kategori"]
 
-# Memastikan kategori data sinkron dengan peta bahasa
-data["kategori"] = data["kategori"].replace({"BAIK": "BAIK", "SEDANG": "SEDANG", "TIDAK SEHAT": "TIDAK SEHAT"})
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123, stratify=y)
 model = GaussianNB()
 model.fit(X_train, y_train)
 akurasi = accuracy_score(y_test, model.predict(X_test))
 
 # =====================================================
-# SIDEBAR CONTROL (LANGUAGE SELECTOR & NAV BUTTONS)
+# SIDEBAR CONTROL & LANGUAGE INITIALIZATION
 # =====================================================
-# Pilihan bahasa diatur secara dinamis terlebih dahulu
 lang_choice = st.sidebar.radio(
     "Pilih Bahasa / Language:",
     ["ID", "EN"],
@@ -374,6 +370,9 @@ lang_choice = st.sidebar.radio(
 )
 
 txt = LANG[lang_choice]
+
+# PERBAIKAN UTAMA: Global Map untuk menyelaraskan kategori grafik dengan bahasa pilihan
+label_map = {"BAIK": txt["cat_baik"], "SEDANG": txt["cat_sedang"], "TIDAK SEHAT": txt["cat_buruk"]}
 
 st.sidebar.markdown(f"<h3 style='margin-bottom:0;'>{txt['sidebar_setting_title']}</h3>", unsafe_allow_html=True)
 st.sidebar.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
@@ -389,7 +388,7 @@ if st.session_state.sudah_masuk:
         st.rerun()
 
 # =====================================================
-# HEADER SIMULATION (Selayaknya Website Komersial Asli)
+# HEADER SIMULATION
 # =====================================================
 st.markdown(f"""
 <div class="web-navbar">
@@ -476,8 +475,6 @@ elif menu == txt["nav_dash"]:
         kategori_count = data["kategori"].value_counts().reset_index()
         kategori_count.columns = ["Kategori", "Jumlah Hari"]
         
-        # Penyelarasan label chart pie dengan bahasa pilihan
-        label_map = {"BAIK": txt["cat_baik"], "SEDANG": txt["cat_sedang"], "TIDAK SEHAT": txt["cat_buruk"]}
         kategori_count["Kategori"] = kategori_count["Kategori"].map(label_map)
         
         fig1 = px.pie(
@@ -555,7 +552,6 @@ elif menu == txt["nav_pred"]:
 
         st.markdown(f"{txt['pred_res_title']} **{lokasi}**")
         
-        # Konversi keluaran hasil mentah ke peta bahasa pilihan
         status_terjemahan = txt["cat_baik"] if hasil == "BAIK" else (txt["cat_sedang"] if hasil == "SEDANG" else txt["cat_buruk"])
         text_report_content = f"AQ-CARE SYSTEM AIR QUALITY REPORT\nLocation: {lokasi}\nResult Status: {status_terjemahan}\n"
         
@@ -601,7 +597,6 @@ elif menu == txt["nav_info"]:
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. Bagian Edukasi Zat Kimia Komprehensif
     st.markdown("<div class='content-card'>", unsafe_allow_html=True)
     
     with st.container():
@@ -630,7 +625,6 @@ elif menu == txt["nav_info"]:
         
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 2. FAQ Accordion Element
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander(txt["faq_q1"]):
         st.write(txt["faq_a1"])
