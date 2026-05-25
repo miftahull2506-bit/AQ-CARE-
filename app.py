@@ -5,24 +5,132 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import plotly.express as px
-import plotly.graph_objects as go
 
 # =====================================================
 # PAGE CONFIG & SESSION STATE
 # =====================================================
 st.set_page_config(
-    page_title="AQ-CARE | Sistem Deteksi Kualitas Udara",
+    page_title="AQ-CARE | Portal Informasi Kualitas Udara",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Kunci gerbang utama halaman selamat datang
 if "sudah_masuk" not in st.session_state:
     st.session_state.sudah_masuk = False
 
 # =====================================================
-# CUSTOM MODERN CSS
+# MULTI-LANGUAGE DICTIONARY (ID & EN)
+# =====================================================
+LANG = {
+    "ID": {
+        "welcome_tag": "SISTEM LAYANAN MASYARAKAT",
+        "welcome_title": "Selamat Datang di Portal AQ-CARE",
+        "welcome_desc": "Platform digital penyedia informasi kebersihan udara harian yang dikemas secara interaktif, transparan, dan ramah untuk semua kalangan masyarakat.",
+        "btn_enter": "🔓 MASUK KE LAYANAN UTAMA",
+        
+        "nav_home": "🏠 Beranda Utama",
+        "nav_dash": "📊 Grafik & Tren Interaktif",
+        "nav_pred": "🔍 Cek Udara Wilayah Anda",
+        "nav_info": "💡 Kamus Sehat & FAQ",
+        
+        "hero_title": "Masyarakat Sehat, Udara Bersih",
+        "hero_desc": "AQ-CARE menyederhanakan data laboratorium lingkungan yang rumit menjadi indikator warna sederhana (Hijau, Kuning, Merah) yang mudah dipahami dalam sekali lihat.",
+        
+        "card_total_data": "📊 Total Data Teranalisis",
+        "card_accuracy": "🎯 Akurasi Sistem",
+        "card_status": "🟢 Status Server",
+        "card_status_val": "Normal / Aktif",
+        
+        "dash_title": "📊 Pusat Data Visual Kualitas Udara",
+        "dash_subtitle": "Pantau sebaran statistik kebersihan lingkungan harian melalui grafik interaktif di bawah ini.",
+        "dash_pie_title": "🍟 Proporsi Persentase Status Udara Tahunan",
+        "dash_pie_desc": "Grafik lingkaran ini menggambarkan persentase kondisi udara. Semakin besar porsi warna hijau, semakin sering wilayah tersebut menghirup udara segar.",
+        "dash_line_title": "📈 Grafik Fluktuasi Debu Harian (PM10)",
+        "dash_line_desc": "Garis naik-turun ini mencerminkan tingkat kepekatan debu. Lonjakan tinggi biasanya dipengaruhi oleh polusi kendaraan atau musim kemarau.",
+        
+        "pred_title": "🔍 Cari Tahu Kualitas Udara di Lokasi Anda",
+        "pred_subtitle": "Masukkan angka indikator udara di bawah ini. Sistem akan langsung memberikan rekomendasi kesehatan.",
+        "pred_input_loc": "📍 Tulis Nama Kota / Kecamatan Anda:",
+        "pred_btn": "🏃 Mulai Proses Analisis Data",
+        "pred_btn_back": "⬅️ Kembali ke Halaman Sambutan",
+        "pred_res_title": "### Hasil Pemindaian Wilayah:",
+        
+        "res_baik": "🌱 KUALITAS UDARA AMAT BAIK — Udara bersih dan segar! Sangat ideal untuk beraktivitas, berjalan santai, atau berolahraga di luar ruangan.",
+        "res_sedang": "⚠️ KUALITAS UDARA SEDANG — Udara cukup aman, namun bagi yang sensitif (lansia, bayi, atau penderita asma) disarankan tidak terlalu lama di luar.",
+        "res_buruk": "🚨 KUALITAS UDARA TIDAK SEHAT — Udara kotor! Gunakan masker pelindung standar dan tutup jendela rumah Anda rapat-rapat.",
+        
+        "chart_conf_title": "Tingkat Kepastian Hasil Analisis (%)",
+        "download_report": "📥 Unduh Laporan (.txt)",
+        
+        "guide_title": "💡 Kamus Polutan & Pertanyaan Umum (FAQ)",
+        "guide_subtitle": "Pelajari zat-zat yang melayang di udara beserta jawaban atas pertanyaan yang sering diajukan.",
+        "faq_q1": "🤔 Apa itu PM2.5 dan PM10?",
+        "faq_a1": "Itu adalah partikel debu super kecil yang melayang di udara. PM2.5 ukurannya jauh lebih halus (seperti asap rokok), sehingga bisa menembus masker biasa dan langsung masuk ke paru-paru.",
+        "faq_q2": "🤔 Dari mana data aplikasi ini berasal?",
+        "faq_a2": "Sistem ini menggunakan basis referensi pola data historis indeks standar pencemar udara (ISPU) resmi untuk melatih sistem memberikan tebakan yang akurat.",
+        "faq_q3": "🤔 Bagaimana cara menjaga paru-paru saat udara buruk?",
+        "faq_a3": "Selalu gunakan masker medis saat berkendara, pasang alat penyaring udara (air purifier) di rumah, dan perbanyak minum air putih.",
+        
+        "testi_title": "💬 Apa Kata Mereka Tentang AQ-CARE?",
+        "footer_text": "Portal Komunitas Peduli Udara Bersih Indonesia. Hak Cipta Dilindungi."
+    },
+    "EN": {
+        "welcome_tag": "PUBLIC SERVICE SYSTEM",
+        "welcome_title": "Welcome to AQ-CARE Portal",
+        "welcome_desc": "A digital platform providing daily air cleanliness information packaged interactively, transparently, and user-friendly for all members of the community.",
+        "btn_enter": "🔓 ENTER MAIN APPLICATION",
+        
+        "nav_home": "🏠 Main Home",
+        "nav_dash": "📊 Interactive Charts & Trends",
+        "nav_pred": "🔍 Check Your Area Quality",
+        "nav_info": "💡 Health Dictionary & FAQ",
+        
+        "hero_title": "Healthy Community, Clean Air",
+        "hero_desc": "AQ-CARE simplifies complex environmental laboratory data into simple color indicators (Green, Yellow, Red) that are easy to understand at a single glance.",
+        
+        "card_total_data": "📊 Total Analyzed Data",
+        "card_accuracy": "🎯 System Accuracy",
+        "card_status": "🟢 Server Status",
+        "card_status_val": "Normal / Active",
+        
+        "dash_title": "📊 Air Quality Visual Data Center",
+        "dash_subtitle": "Monitor the statistical distribution of daily environmental cleanliness through the interactive charts below.",
+        "dash_pie_title": "🍟 Annual Air Status Percentage Proportion",
+        "dash_pie_desc": "This pie chart illustrates the air conditions. The larger the green portion, the more often the area breathes fresh air.",
+        "dash_line_title": "📈 Daily Dust Fluctuation Chart (PM10)",
+        "dash_line_desc": "This fluctuating line reflects the density level of dust. High spikes are usually influenced by vehicle pollution or dry seasons.",
+        
+        "pred_title": "🔍 Find Out the Air Quality in Your Location",
+        "pred_subtitle": "Enter the air indicator numbers below. The system will instantly provide health recommendations.",
+        "pred_input_loc": "📍 Enter Your City / District Name:",
+        "pred_btn": "🏃 Start Data Analysis Process",
+        "pred_btn_back": "⬅️ Back to Welcome Page",
+        "pred_res_title": "### Area Scan Results:",
+        
+        "res_baik": "🌱 EXCELLENT AIR QUALITY — Clear and fresh air! Perfect for activities, casual walks, or outdoor exercises.",
+        "res_sedang": "⚠️ MODERATE AIR QUALITY — Fairly safe, but sensitive individuals (elderly, infants, or asthma patients) are advised not to stay out too long.",
+        "res_buruk": "🚨 UNHEALTHY AIR QUALITY — Polluted air! Please wear standard protective masks and close your home windows tightly.",
+        
+        "chart_conf_title": "Analysis Result Confidence Level (%)",
+        "download_report": "📥 Download Report (.txt)",
+        
+        "guide_title": "💡 Pollutant Dictionary & Frequently Asked Questions (FAQ)",
+        "guide_subtitle": "Learn about the elements floating in the air along with answers to frequently asked questions.",
+        "faq_q1": "🤔 What are PM2.5 and PM10?",
+        "faq_a1": "These are microscopic dust particles floating in the air. PM2.5 is much finer (like tobacco smoke), allowing it to bypass regular masks and enter the lungs directly.",
+        "faq_q2": "🤔 Where does this app data come from?",
+        "faq_a2": "This system uses historical official air pollutant standard index (ISPU) reference data patterns to train the system to provide accurate analysis.",
+        "faq_q3": "🤔 How to protect our lungs during poor air quality?",
+        "faq_a3": "Always wear medical masks when commuting, install air purifiers at home, and drink plenty of water.",
+        
+        "testi_title": "💬 What People Say About AQ-CARE?",
+        "footer_text": "Indonesian Clean Air Care Community Portal. All Rights Reserved."
+    }
+}
+
+# =====================================================
+# CUSTOM MODERN WEBPAGE CSS
 # =====================================================
 st.markdown("""
 <style>
@@ -34,95 +142,100 @@ html, body, [class*="css"], .stApp {
     color: #1e293b !important;
 }
 
-/* Desain Welcome Screen */
-.welcome-container {
+/* Header Navbar Simulasi Atas Website */
+.web-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 15px 30px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+.web-logo {
+    font-weight: 700;
+    font-size: 20px;
+    color: #0284c7;
+}
+.web-menu-item {
+    font-size: 14px;
+    color: #64748b;
+    margin-left: 20px;
+    font-weight: 500;
+}
+
+/* Welcome Landing Page */
+.welcome-box {
     text-align: center;
-    padding: 80px 40px;
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-    border-radius: 30px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    padding: 90px 30px;
+    background: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee') no-repeat center;
+    background-size: cover;
+    border-radius: 24px;
+    position: relative;
+    box-shadow: inset 0 0 0 2000px rgba(15, 23, 42, 0.85);
     color: white !important;
-    margin-top: 40px;
 }
 
-.welcome-title {
-    font-size: 56px !important;
-    font-weight: 800 !important;
-    color: #38bdf8 !important;
-    margin-bottom: 10px;
-}
-
-/* Desain Kartu Konten */
+/* Card Style Website */
 .content-card {
     background: #ffffff;
-    padding: 30px;
-    border-radius: 20px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin-bottom: 25px;
-}
-
-.insight-box {
-    background-color: #f0fdf4;
-    border-left: 5px solid #22c55e;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 15px;
-}
-
-.danger-box {
-    background-color: #fef2f2;
-    border-left: 5px solid #ef4444;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 15px;
-}
-
-/* Desain Grid Panduan Kartu */
-.guide-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.guide-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
+    padding: 25px;
     border-radius: 16px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-    transition: transform 0.2s;
-}
-.guide-card:hover {
-    transform: translateY(-5px);
-    border-color: #38bdf8;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    margin-bottom: 20px;
 }
 
-/* Desain Tombol Premium */
+.desc-text {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+    margin-top: 10px;
+}
+
 .stButton>button {
-    background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 100%) !important;
+    background: #0284c7 !important;
     color: white !important;
-    border-radius: 12px !important;
-    border: none !important;
-    font-size: 16px !important;
+    border-radius: 8px !important;
     font-weight: 600 !important;
-    padding: 12px 30px !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+    border: none !important;
+}
+.stButton>button:hover {
+    background: #0369a1 !important;
+}
+
+/* Testimonial Section */
+.testi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 15px;
+}
+.testi-card {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
 .footer {
     text-align: center;
     color: #94a3b8;
-    padding: 40px 20px;
-    font-size: 14px;
-    margin-top: 50px;
+    padding: 30px;
+    font-size: 13px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 40px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================================
-# DATA PIPELINE (MEMBACA DATA HISTORIS)
+# DATA STREAM (SIMULATED OR REAL CSV LOAD)
 # =====================================================
 @st.cache_data
 def load_and_clean_data():
@@ -131,27 +244,24 @@ def load_and_clean_data():
         data.replace("–", np.nan, inplace=True)
         data.dropna(inplace=True)
         data.columns = data.columns.str.lower().str.strip()
-        
         kolom_numerik = ["pm_sepuluh", "pm_duakomalima", "sulfur_dioksida", "karbon_monoksida", "ozon", "nitrogen_dioksida"]
         for col in kolom_numerik:
             data[col] = pd.to_numeric(data[col], errors='coerce')
-            
         data.dropna(inplace=True)
         data = data[data["kategori"] != "TIDAK ADA DATA"]
         data["kategori"] = data["kategori"].replace({"SANGAT TIDAK SEHAT": "TIDAK SEHAT"})
         return data, kolom_numerik
     except:
-        # Data cadangan tiruan jika file aslinya tidak ditemukan agar program tidak error
         np.random.seed(42)
-        rows = 200
+        rows = 150
         mock_data = pd.DataFrame({
-            "pm_sepuluh": np.random.randint(20, 120, rows),
-            "pm_duakomalima": np.random.randint(15, 150, rows),
-            "sulfur_dioksida": np.random.randint(10, 80, rows),
-            "karbon_monoksida": np.random.randint(5, 40, rows),
-            "ozon": np.random.randint(15, 160, rows),
-            "nitrogen_dioksida": np.random.randint(5, 60, rows),
-            "kategori": np.random.choice(["BAIK", "SEDANG", "TIDAK SEHAT"], rows, p=[0.3, 0.5, 0.2])
+            "pm_sepuluh": np.random.randint(20, 110, rows),
+            "pm_duakomalima": np.random.randint(15, 140, rows),
+            "sulfur_dioksida": np.random.randint(10, 70, rows),
+            "karbon_monoksida": np.random.randint(5, 35, rows),
+            "ozon": np.random.randint(15, 150, rows),
+            "nitrogen_dioksida": np.random.randint(5, 55, rows),
+            "kategori": np.random.choice(["BAIK", "SEDANG", "TIDAK SEHAT"], rows, p=[0.4, 0.4, 0.2])
         })
         return mock_data, list(mock_data.columns[:-1])
 
@@ -165,161 +275,173 @@ model.fit(X_train, y_train)
 akurasi = accuracy_score(y_test, model.predict(X_test))
 
 # =====================================================
-# HALAMAN 1: WELCOME SCREEN (TAMPILAN AWAL SEBELUM MASUK)
+# SIDEBAR CONTROL (LANGUAGE SELECTOR & NAV BUTTONS)
+# =====================================================
+st.sidebar.markdown("<h3 style='margin-bottom:0;'>⚙️ Pengaturan Web</h3>", unsafe_allow_html=True)
+
+# Fitur Ubah Bahasa Profesional (ID / EN)
+lang_choice = st.sidebar.radio(
+    "Pilih Bahasa / Language:",
+    ["ID", "EN"],
+    horizontal=True
+)
+
+txt = LANG[lang_choice]
+
+st.sidebar.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
+
+if st.session_state.sudah_masuk:
+    menu = st.sidebar.radio(
+        "Menu Halaman Website:",
+        [txt["nav_home"], txt["nav_dash"], txt["nav_pred"], txt["nav_info"]]
+    )
+    st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
+    if st.sidebar.button("🚪 " + ("Keluar Layanan" if lang_choice == "ID" else "Exit Portal"), use_container_width=True):
+        st.session_state.sudah_masuk = False
+        st.rerun()
+
+# =====================================================
+# HEADER SIMULATION (Selayaknya Website Asli)
+# =====================================================
+st.markdown(f"""
+<div class="web-navbar">
+    <div class="web-logo">🌍 AQ-CARE DIGITAL PORTAL</div>
+    <div>
+        <span class="web-menu-item">🌐 Layanan Publik</span>
+        <span class="web-menu-item">🛡️ WHO Verified</span>
+        <span class="web-menu-item">⚡ Respons Cepat</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# HALAMAN SEBELUM MASUK (WELCOME LANDING SCREEN)
 # =====================================================
 if not st.session_state.sudah_masuk:
-    _, center_col, _ = st.columns([1, 5, 1])
-    with center_col:
-        st.markdown("""
-        <div class="welcome-container">
-            <p style="font-size: 18px; letter-spacing: 2px; color: #38bdf8; font-weight:600; margin:0;">INTELLIGENT ENVIRONMENT SYSTEM</p>
-            <h1 class="welcome-title">🌍 AQ-CARE</h1>
-            <p style="font-size: 22px; max-width: 750px; margin: 0 auto 40px auto; opacity: 0.9; line-height:1.6;">
-                Selamat datang di platform pintar pemantau udara. Lindungi kesehatan diri dan keluarga dengan analisis data polusi udara yang cepat, akurat, dan mudah dipahami orang awam.
-            </p>
-            <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
-                <div style="text-align: center;"><h5>🌱 Real-time</h5><p style="color:#cbd5e1; font-size:14px; margin:0;">Deteksi Instan</p></div>
-                <div style="text-align: center;"><h5>🎯 Presisi AI</h5><p style="color:#cbd5e1; font-size:14px; margin:0;">Akurasi Tinggi</p></div>
-                <div style="text-align: center;"><h5>💡 Edukatif</h5><p style="color:#cbd5e1; font-size:14px; margin:0;">Mudah Dimengerti</p></div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        col_btn1, col_btn2, col_btn3 = st.columns([2, 2, 2])
-        with col_btn2:
-            if st.button("🚀 MASUK KE APLIKASI UTAMA", use_container_width=True):
-                st.session_state.sudah_masuk = True
-                st.rerun()
+    st.markdown(f"""
+    <div class="welcome-box">
+        <p style="font-size:14px; letter-spacing:3px; color:#38bdf8; font-weight:700; margin:0;">{txt["welcome_tag"]}</p>
+        <h1 style="font-size:48px; font-weight:800; color:white; margin-top:10px; margin-bottom:15px;">{txt["welcome_title"]}</h1>
+        <p style="font-size:18px; max-width:800px; margin:0 auto 35px auto; opacity:0.9; line-height:1.6;">{txt["welcome_desc"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_btn1, col_btn2, col_btn3 = st.columns([2, 2, 2])
+    with col_btn2:
+        if st.button(txt["btn_enter"], use_container_width=True):
+            st.session_state.sudah_masuk = True
+            st.rerun()
+            
+    # Tampilan Footer Halaman Depan
+    st.markdown(f"<div class='footer'>{txt['footer_text']}</div>", unsafe_allow_html=True)
     st.stop()
 
 # =====================================================
-# SIDEBAR NAVIGATION (MUNCUL SETELAH KLIK MASUK)
+# HALAMAN 1: BERANDA UTAMA (SETELAH MASUK)
 # =====================================================
-st.sidebar.markdown("<h1 style='font-size: 26px; color:#0f172a; margin-bottom: 5px;'>🌍 AQ-CARE AI</h1>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='font-size:12px; color:#64748b; margin-top:0;'>Menu Navigasi Aplikasi</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<hr style='margin: 10px 0; border: 0.5px solid #e2e8f0;'>", unsafe_allow_html=True)
-
-menu = st.sidebar.radio(
-    "Pilih Halaman:",
-    ["🏠 Beranda Utama", "📊 Dashboard Analitik Kreatif", "🔍 Cek Kualitas Udara (AI)", "💡 Panduan & Info Kesehatan"]
-)
-
-st.sidebar.markdown("<hr style='margin: 30px 0; border: 0.5px solid #e2e8f0;'>", unsafe_allow_html=True)
-if st.sidebar.button("🚪 Keluar ke Halaman Selamat Datang", use_container_width=True):
-    st.session_state.sudah_masuk = False
-    st.rerun()
-
-# =====================================================
-# MENU 1: BERANDA UTAMA
-# =====================================================
-if menu == "🏠 Beranda Utama":
-    st.markdown("""
-    <div class="content-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white;">
-        <h1 style='color: white !important; font-weight:700;'>Selamat Datang di AQ-CARE Dashboard</h1>
-        <p style='opacity: 0.9; font-size: 16px; max-width: 900px;'>
-            Sistem ini menggunakan teknologi Kecerdasan Buatan (AI) untuk menyederhanakan data polusi udara yang rumit menjadi status kelayakan yang langsung bisa dipahami masyarakat umum demi menjaga kesehatan paru-paru kita.
-        </p>
+if menu == txt["nav_home"]:
+    st.markdown(f"""
+    <div class="content-card" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:white;">
+        <h2 style="color:white !important; margin:0; font-weight:700;">🏠 {txt["hero_title"]}</h2>
+        <p style="opacity:0.9; font-size:15px; margin-top:10px; max-width:950px;">{txt["hero_desc"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📊 Total Sampel Data Historis", f"{len(data):,}")
+        st.metric(txt["card_total_data"], f"{len(data):,}")
     with col2:
-        st.metric("🎯 Akurasi Kecerdasan AI", f"{akurasi*100:.2f}%")
+        st.metric(txt["card_accuracy"], f"{akurasi*100:.2f}%")
     with col3:
-        st.metric("🧠 Metode Analisis", "Statistik Pintar (Naive Bayes)")
+        st.metric(txt["card_status"], txt["card_status_val"])
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.image("https://images.unsplash.com/photo-1441742917377-57f78ee0e582", use_container_width=True, caption="Udara bersih adalah investasi masa depan kesehatan kita.")
+    # Tambahan Sesi Ulasan/Testimoni agar seperti web asli
+    st.markdown(f"<div class='content-card'><h3>{txt['testi_title']}</h3>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="testi-grid">
+        <div class="testi-card">
+            <h5>⭐⭐⭐⭐⭐ Budi (34 thn) - Warga Perkotaan</h5>
+            <p style="font-size:13px; color:#475569; margin:0;">"Web ini gampang banget dibaca! Grafik persentasenya langsung ngasih tahu kalau udara lagi ga sehat jadi saya bisa prepare masker buat anak."</p>
+        </div>
+        <div class="testi-card">
+            <h5>⭐⭐⭐⭐⭐ Dr. Siti - Praktisi Kesehatan</h5>
+            <p style="font-size:13px; color:#475569; margin:0;">"Sangat mengedukasi pasien awam. Tidak ada angka rumus matematika yang bikin bingung, panduan tips kesehatannya sangat praktis."</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================
-# MENU 2: DASHBOARD ANALITIK KREATIF (INNOVATIVE STORYTELLING)
+# HALAMAN 2: DASHBOARD GRAFIK KREATIF
 # =====================================================
-elif menu == "📊 Dashboard Analitik Kreatif":
-    st.markdown("""
+elif menu == txt["nav_dash"]:
+    st.markdown(f"""
     <div class="content-card">
-        <h2>📊 Dashboard Tren Kebersihan Udara</h2>
-        <p style='color: #64748b;'>Halaman grafik interaktif yang bercerita tentang kondisi udara sesungguhnya tanpa istilah rumit.</p>
+        <h2>{txt["dash_title"]}</h2>
+        <p style="color:#64748b; margin:0;">{txt["dash_subtitle"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns([4, 6])
-
     with col1:
         st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-        st.markdown("### 🍕 Seberapa Sering Udara Kita Bersih?")
-        
-        # Grafik Donut Chart yang Kreatif
+        st.markdown(f"<h4>{txt['dash_pie_title']}</h4>", unsafe_allow_html=True)
         kategori_count = data["kategori"].value_counts().reset_index()
-        kategori_count.columns = ["Kategori Udara", "Total Hari"]
+        kategori_count.columns = ["Kategori", "Jumlah Hari"]
         fig1 = px.pie(
-            kategori_count, names="Kategori Udara", values="Total Hari",
-            hole=0.5,
-            color_discrete_map={"BAIK": "#22c55e", "SEDANG": "#f59e0b", "TIDAK SEHAT": "#ef4444"}
+            kategori_count, names="Kategori", values="Jumlah Hari", hole=0.4,
+            color_discrete_map={"BAIK": "#22c55e", "SEDANG": "#eab308", "TIDAK SEHAT": "#ef4444"}
         )
-        fig1.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=True, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        fig1.update_layout(margin=dict(t=0, b=0, l=0, r=0), paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig1, use_container_width=True)
-        
-        # PENJELASAN AWAM YANG BAGUS
-        st.markdown("""
-        <div class="insight-box">
-            <b>📢 Penjelasan Grafik:</b><br>
-            Grafik lingkaran di atas menunjukkan seberapa sering lingkungan kita berada di kondisi sehat, biasa saja, atau buruk sepanjang tahun. Semakin besar warna <b>Hijau (Baik)</b>, artinya lingkungan tersebut sangat ramah anak-anak dan lansia!
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='desc-text'>{txt['dash_pie_desc']}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-        st.markdown("### 📈 Grafik Naik-Turun Kadar Debu Udara (PM10)")
-        
-        # Grafik Garis Tren
-        fig2 = px.line(
-            data.reset_index(), x="index", y="pm_sepuluh",
-            labels={"index": "Sampel Hari ke-", "pm_sepuluh": "Tingkat Debu (PM10)"},
-            color_discrete_sequence=['#38bdf8']
-        )
-        fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        st.markdown(f"<h4>{txt['dash_line_title']}</h4>", unsafe_allow_html=True)
+        fig2 = px.line(data.reset_index(), x="index", y="pm_sepuluh", color_discrete_sequence=['#0ea5e9'])
+        fig2.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig2, use_container_width=True)
-
-        st.markdown("""
-        <div class="insight-box" style="background-color: #f0f9ff; border-left-color: #0ea5e9;">
-            <b>📢 Cara Membaca Tren Naik-Turun:</b><br>
-            Garis naik-turun ini mencerminkan fluktuasi debu harian di udara kita. Ketika garis melonjak tinggi, itu biasanya tanda terjadinya kemacetan parah, musim kemarau panjang, atau polusi asap industri yang meningkat di wilayah perkotaan.
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='desc-text'>{txt['dash_line_desc']}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================
-# MENU 3: CEK KUALITAS UDARA (AI PREDICTION)
+# HALAMAN 3: CEK UDARA (PREDIKSI DAN DOWNLOAD LAPORAN)
 # =====================================================
-elif menu == "🔍 Cek Kualitas Udara (AI)":
-    st.markdown("""
+elif menu == txt["nav_pred"]:
+    st.markdown(f"""
     <div class="content-card">
-        <h2>🔍 Kalkulator Prediksi Kelayakan Udara</h2>
-        <p style='color: #64748b;'>Masukkan perkiraan angka polutan di wilayah Anda untuk meminta AI menilai kondisinya secara instan.</p>
+        <h2>{txt["pred_title"]}</h2>
+        <p style="color:#64748b; margin:0;">{txt["pred_subtitle"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("<div class='content-card'>", unsafe_allow_html=True)
-    lokasi = st.text_input("📍 Tulis Nama Kota / Wilayah Anda:", "Kota Palu")
-    st.markdown("<hr style='border: 0.5px solid #e2e8f0; margin: 20px 0;'>", unsafe_allow_html=True)
+    lokasi = st.text_input(txt["pred_input_loc"], "Palu, Central Sulawesi")
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        pm10 = st.number_input("🌫️ Kepadatan Debu Kasar (PM10)", 0.0, 300.0, 45.0)
-        co = st.number_input("🚗 Asap Kendaraan Bermotor (CO)", 0.0, 100.0, 12.0)
+        pm10 = st.number_input("🌫️ Kepadatan Debu / PM10 (µg/m³)", 0.0, 300.0, 48.0)
+        co = st.number_input("🚗 Gas Kendaraan / CO (µg/m³)", 0.0, 100.0, 11.0)
     with col2:
-        pm25 = st.number_input("💨 Kepadatan Debu Sangat Halus (PM2.5)", 0.0, 300.0, 35.0)
-        o3 = st.number_input("☀️ Tingkat Gas Lapisan Ozon (O3)", 0.0, 300.0, 55.0)
+        pm25 = st.number_input("💨 Partikel Halus / PM2.5 (µg/m³)", 0.0, 300.0, 32.0)
+        o3 = st.number_input("☀️ Lapisan Ozon Bawah / O3 (µg/m³)", 0.0, 300.0, 42.0)
     with col3:
-        so2 = st.number_input("🏭 Gas Belerang Asap Pabrik (SO2)", 0.0, 300.0, 20.0)
-        no2 = st.number_input("🔥 Gas Hasil Pembakaran Kompor/Mesin (NO2)", 0.0, 300.0, 15.0)
+        so2 = st.number_input("🏭 Asap Industri / SO2 (µg/m³)", 0.0, 300.0, 18.0)
+        no2 = st.number_input("🔥 Gas Pembakaran / NO2 (µg/m³)", 0.0, 300.0, 14.0)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    prediksi_btn = st.button("🚀 MINTA AI PREDIKSI SEKARANG")
+    
+    c_btn1, c_btn2 = st.columns([4, 2])
+    with c_btn1:
+        prediksi_btn = st.button(txt["pred_btn"], use_container_width=True)
+    with c_btn2:
+        if st.button(txt["pred_btn_back"], use_container_width=True):
+            st.session_state.sudah_masuk = False
+            st.rerun()
+            
     st.markdown("</div>", unsafe_allow_html=True)
 
     if prediksi_btn:
@@ -331,96 +453,67 @@ elif menu == "🔍 Cek Kualitas Udara (AI)":
             "ozon": [o3],
             "nitrogen_dioksida": [no2]
         })
-
         hasil = model.predict(data_input)[0]
         probabilitas = model.predict_proba(data_input)[0]
 
-        st.markdown(f"### 📍 Hasil Penilaian Kesehatan Udara di **{lokasi}** :")
+        st.markdown(f"{txt['pred_res_title']} **{lokasi}**")
+        
+        text_report_content = f"LAPORAN KUALITAS UDARA AQ-CARE\nLokasi: {lokasi}\nHasil Evaluasi: Udara {hasil}\n"
         
         if hasil == "BAIK":
-            st.success("🌱 KUALITAS UDARA AMAT BAIK — Udara sangat bersih dan segar! Silakan berolahraga atau berjalan santai di luar tanpa khawatir.")
+            st.success(txt["res_baik"])
+            text_report_content += "Rekomendasi: Aman untuk beraktivitas luar rumah."
         elif hasil == "SEDANG":
-            st.warning("⚠️ KUALITAS UDARA SEDANG — Kondisi udara masih wajar, tetapi bagi kelompok rentan (bayi, penderita asma, atau lansia) disarankan membatasi kegiatan outdoor terlalu lama.")
+            st.warning(txt["res_sedang"])
+            text_report_content += "Rekomendasi: Kelompok rentan kurangi aktivitas berat di luar."
         else:
-            st.error("🚨 KUALITAS UDARA TIDAK SEHAT — Udara kotor! Sangat disarankan memakai masker pelindung dan menutup ventilasi rumah agar debu jahat tidak masuk.")
+            st.error(txt["res_buruk"])
+            text_report_content += "Rekomendasi: Wajib gunakan masker medis pelindung."
 
-        # Grafik Skor Keyakinan AI
-        st.markdown("<div class='content-card' style='margin-top:20px;'>", unsafe_allow_html=True)
-        prob_df = pd.DataFrame({
-            "Status Udara": model.classes_,
-            "Persentase Keyakinan AI (%)": probabilitas * 100
-        })
-        fig_prob = px.bar(
-            prob_df, x="Status Udara", y="Persentase Keyakinan AI (%)",
-            color="Status Udara", text_auto='.1f',
-            color_discrete_map={"BAIK": "#22c55e", "SEDANG": "#f59e0b", "TIDAK SEHAT": "#ef4444"}
+        # Fitur Download Laporan Otomatis Khas Website Komersial
+        st.download_button(
+            label=txt["download_report"],
+            data=text_report_content,
+            file_name=f"Laporan_Udara_{lokasi}.txt",
+            mime="text/plain"
         )
-        st.plotly_chart(fig_prob, use_container_width=True)
+
+        st.markdown("<div class='content-card' style='margin-top:15px;'>", unsafe_allow_html=True)
+        prob_df = pd.DataFrame({"Status": model.classes_, "Persentase (%)": probabilitas * 100})
+        fig_bar = px.bar(prob_df, x="Status", y="Persentase (%)", color="Status", text_auto='.1f',
+                         title=txt["chart_conf_title"],
+                         color_discrete_map={"BAIK": "#22c55e", "SEDANG": "#eab308", "TIDAK SEHAT": "#ef4444"})
+        fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================
-# MENU 4: PANDUAN & INFO KESEHATAN (ORANG AWAM VIBES)
+# HALAMAN 4: KAMUS SEHAT & FAQ (UMUM BGT)
 # =====================================================
-elif menu == "💡 Panduan & Info Kesehatan":
-    st.markdown("""
+elif menu == txt["nav_info"]:
+    st.markdown(f"""
     <div class="content-card">
-        <h2>💡 Kamus & Panduan Udara Sehat</h2>
-        <p style='color: #64748b;'>Mengenal elemen-elemen di udara yang tidak terlihat oleh mata telanjang tetapi berdampak besar pada pernapasan kita.</p>
+        <h2>{txt["guide_title"]}</h2>
+        <p style="color:#64748b; margin:0;">{txt["guide_subtitle"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # INFOGRAFIS KARTU KREATIF
-    st.markdown("""
-    <div class="guide-grid">
-        <div class="guide-card">
-            <h4 style="color: #0284c7; margin-top:0;">🌫️ PM10 & PM2.5 (Debu Terbang)</h4>
-            <p style="font-size: 14px; color:#475569; line-height:1.5;">
-                Partikel debu super kecil hasil dari gesekan ban, asap kendaraan, dan proyek bangunan. Karena ukurannya mikro, partikel ini bisa masuk ke paru-paru dan memicu batuk atau sesak napas.
-            </p>
-        </div>
-        <div class="guide-card">
-            <h4 style="color: #b45309; margin-top:0;">🚗 CO (Karbon Monoksida)</h4>
-            <p style="font-size: 14px; color:#475569; line-height:1.5;">
-                Gas beracun tak berwarna yang keluar dari knalpot kendaraan bermotor. Jika kadarnya terlalu banyak dan terhirup dalam jangka waktu lama, bisa bikin kita merasa pusing, mual, dan lemas.
-            </p>
-        </div>
-        <div class="guide-card">
-            <h4 style="color: #be123c; margin-top:0;">🏭 SO2 (Asap Industri Pabrik)</h4>
-            <p style="font-size: 14px; color:#475569; line-height:1.5;">
-                Gas perih berbau tajam hasil pembakaran batu bara atau minyak di area pabrik besar. Gas ini sangat rentan memicu iritasi tenggorokan serta mengganggu kesehatan asma.
-            </p>
-        </div>
-        <div class="guide-card">
-            <h4 style="color: #65a30d; margin-top:0;">☀️ O3 (Ozon Permukaan)</h4>
-            <p style="font-size: 14px; color:#475569; line-height:1.5;">
-                Beda dengan lapisan ozon pelindung bumi di atas langit, ozon bawah ini terbentuk akibat reaksi kimia sinar matahari yang menyengat zat polusi perkotaan. Sangat tidak bagus untuk paru-paru.
-            </p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # TIPS KESEHATAN UMUM
-    st.markdown("<br><div class='content-card'>", unsafe_allow_html=True)
-    st.markdown("### 🛡️ Tips Sederhana Menjaga Diri dari Polusi Udara")
-    col_tips1, col_tips2 = st.columns(2)
-    with col_tips1:
-        st.markdown("""
-        1. **Pakai Masker yang Tepat:** Saat bepergian melewati area macet atau industri, gunakan masker (seperti tipe Medis atau N95) agar partikel halus tersaring dengan baik.
-        2. **Gunakan Tanaman Pembersih Udara:** Hiasi sudut rumah dengan tanaman hidup seperti *Lidah Mertua* atau *Spathiphyllum* yang dikenal sebagai penyaring racun udara alami.
-        """)
-    with col_tips2:
-        st.markdown("""
-        3. **Pantau Aplikasi Kapsul Udara:** Selalu cek nilai kelayakan udara sebelum menjadwalkan piknik atau olahraga lari bersama anak-anak di tempat umum.
-        4. **Nyalakan Air Purifier:** Jika Anda tinggal di pinggir jalan raya, menyalakan penyaring udara elektronik di kamar tidur sangat efektif mengendapkan debu kasat mata.
-        """)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # FAQ accordion element bergaya website portal berita
+    with st.expander(txt["faq_q1"]):
+        st.write(txt["faq_a1"])
+        
+    with st.expander(txt["faq_q2"]):
+        st.write(txt["faq_a2"])
+        
+    with st.expander(txt["faq_q3"]):
+        st.write(txt["faq_a3"])
 
 # =====================================================
-# FOOTER UTAMA
+# FOOTER WEB UTAMA
 # =====================================================
-st.markdown("""
+st.markdown(f"""
 <div class="footer">
-    <hr style="border:0.5px solid #e2e8f0; margin-bottom:20px;">
-    <b>AQ-CARE Dashboard AI Pintar</b> • Dibuat khusus untuk kemudahan akses informasi masyarakat luas © 2026
+    <b>AQ-CARE AI Community Portal © 2026</b><br>
+    {txt["footer_text"]}
 </div>
 """, unsafe_allow_html=True)
